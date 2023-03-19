@@ -1,14 +1,15 @@
 package br.com.erlds.aws_project1.controller;
 
 
+import br.com.erlds.aws_project1.enums.EventType;
 import br.com.erlds.aws_project1.model.Product;
 import br.com.erlds.aws_project1.repository.ProductRepository;
+import br.com.erlds.aws_project1.service.ProductPublisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.swing.text.html.Option;
 import java.util.Optional;
 
 @RestController
@@ -16,10 +17,12 @@ import java.util.Optional;
 public class ProductController {
 
     private ProductRepository productRepository;
+    private ProductPublisher productPublisher;
 
     @Autowired
-    public ProductController(ProductRepository productRepository){
+    public ProductController(ProductRepository productRepository, ProductPublisher productPublisher){
         this.productRepository = productRepository;
+        this.productPublisher = productPublisher;
     }
 
     @GetMapping
@@ -42,6 +45,7 @@ public class ProductController {
             @RequestBody Product product) {
         Product productCreated = productRepository.save(product);
 
+        productPublisher.publishProductEvent(productCreated, EventType.PRODUCT_CREATED,"create");
         return new ResponseEntity<Product>(productCreated, HttpStatus.CREATED);
     }
 
@@ -51,6 +55,9 @@ public class ProductController {
         if(productRepository.existsById(id)){
             product.setId(id);
             Product productUpdated = productRepository.save(product);
+
+            productPublisher.publishProductEvent(productUpdated, EventType.PRODUCT_UPDATED,"update");
+
             return new ResponseEntity<Product>(productUpdated, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -63,6 +70,9 @@ public class ProductController {
         if(optionalProduct.isPresent()){
             Product product = optionalProduct.get();
             productRepository.delete(product);
+
+            productPublisher.publishProductEvent(product, EventType.PRODUCT_DELETED,"delete");
+
             return new ResponseEntity<Product>(product, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
