@@ -5,6 +5,7 @@ import br.com.erlds.aws_project1.model.Envelop;
 import br.com.erlds.aws_project1.model.Product;
 import br.com.erlds.aws_project1.model.ProductEvent;
 import com.amazonaws.services.sns.AmazonSNS;
+import com.amazonaws.services.sns.model.PublishResult;
 import com.amazonaws.services.sns.model.Topic;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,9 +41,13 @@ public class ProductPublisher {
         try {
             envelop.setData(objectMapper.writeValueAsString(productEvent));
 
-            snsClient.publish(
+            PublishResult publishResult = snsClient.publish(
                     productEventsTopic.getTopicArn(),
                     objectMapper.writeValueAsString(envelop));
+
+            LOG.info("Product event sent - Event: {} - ProductId: {} - MessageId: {}",
+                envelop.getEventType(),
+                productEvent.getProductId(), publishResult.getMessageId());
 
         } catch (JsonProcessingException e) {
             LOG.error("Failed to create product event message");
