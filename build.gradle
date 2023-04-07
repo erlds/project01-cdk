@@ -27,7 +27,7 @@ sourceCompatibility = '15'
 
 bootJar {
 	baseName = 'curso_aws_project1'
-	version =  '1.4.0'
+	version =  '1.5.0'
 	mainClassName = "br.com.erlds.aws_project1.AwsProject1Application"
 }
 
